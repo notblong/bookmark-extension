@@ -1,0 +1,17 @@
+# macOS and editor files
+.DS_Store
+.idea/
+.vscode/
+
+# Local dependencies and build output
+node_modules/
+dist/
+build/
+
+# Extension packaging and local keys
+*.crx
+*.pem
+
+# Logs
+*.log
+npm-debug.log*

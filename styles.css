@@ -1,0 +1,102 @@
+:root {
+  color-scheme: light dark;
+  --page: #f6f6f3;
+  --surface: #ffffff;
+  --text: #171717;
+  --muted: #666662;
+  --line: #c9c9c4;
+  --line-subtle: #e5e5df;
+  --link: #0645ad;
+  --focus: #d67c00;
+  --empty: #f0f0eb;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #161616;
+  --surface: #202020;
+  --text: #f3f3ef;
+  --muted: #aaa9a2;
+  --line: #54544f;
+  --line-subtle: #363633;
+  --link: #82b8ff;
+  --focus: #ffb84d;
+  --empty: #252523;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --page: #161616;
+    --surface: #202020;
+    --text: #f3f3ef;
+    --muted: #aaa9a2;
+    --line: #54544f;
+    --line-subtle: #363633;
+    --link: #82b8ff;
+    --focus: #ffb84d;
+    --empty: #252523;
+  }
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  min-width: 320px;
+  background: var(--page);
+  color: var(--text);
+  font: 14px/1.35 Arial, Helvetica, sans-serif;
+}
+
+.topbar {
+  display: grid;
+  grid-template-columns: minmax(130px, 1fr) minmax(220px, 540px) minmax(230px, 1fr);
+  gap: 16px;
+  align-items: center;
+  min-height: 58px;
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--line);
+}
+.wordmark { color: var(--text); font-weight: 700; letter-spacing: -.02em; text-decoration: none; }
+.search { position: relative; display: flex; align-items: center; }
+.search input {
+  width: 100%; height: 34px; padding: 7px 52px 7px 10px;
+  border: 1px solid var(--line); border-radius: 2px; outline: none;
+  background: var(--surface); color: var(--text); font: inherit;
+}
+.search input:focus, select:focus, .bookmark:focus { outline: 2px solid var(--focus); outline-offset: 2px; }
+kbd { position: absolute; right: 8px; color: var(--muted); font: 11px Arial, sans-serif; }
+.toolbar { display: flex; justify-content: flex-end; align-items: center; gap: 6px; color: var(--muted); }
+.select-label { font-size: 12px; }
+select { height: 28px; padding: 3px 22px 3px 6px; background: var(--surface); color: var(--text); border: 1px solid var(--line); border-radius: 2px; font: inherit; }
+
+main { padding: 22px 20px 40px; }
+.status { min-height: 18px; margin-bottom: 12px; color: var(--muted); font-size: 13px; }
+.board { display: grid; grid-template-columns: repeat(var(--columns, 4), minmax(0, 1fr)); gap: 18px; align-items: start; }
+.column { min-width: 0; background: var(--surface); border: 1px solid var(--line); }
+.column-heading { display: flex; gap: 8px; align-items: baseline; padding: 9px 10px 8px; border-bottom: 1px solid var(--line); }
+.folder-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 700; }
+.count { color: var(--muted); font-size: 12px; }
+.column-content { padding: 5px 0; }
+.section-title { margin: 9px 10px 3px; color: var(--muted); font-size: 10px; font-weight: 700; letter-spacing: .06em; }
+.bookmark { display: flex; gap: 8px; align-items: flex-start; padding: 7px 10px; color: var(--link); text-decoration: none; }
+.bookmark:hover { background: var(--empty); text-decoration: underline; }
+.favicon { flex: 0 0 16px; margin-top: 1px; object-fit: contain; }
+.bookmark-copy { min-width: 0; }
+.bookmark-title, .bookmark-domain { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bookmark-title { color: var(--link); }
+.bookmark-domain { color: var(--muted); font-size: 12px; }
+.empty { padding: 10px; color: var(--muted); font-style: italic; }
+
+@media (max-width: 950px) { .board { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 680px) {
+  .topbar { grid-template-columns: 1fr auto; }
+  .search { grid-row: 2; grid-column: 1 / -1; }
+  .toolbar { grid-column: 2; grid-row: 1; }
+  .toolbar .select-label { display: none; }
+  .board { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  main { padding: 16px 12px; }
+  .topbar { padding: 9px 12px; }
+}
+@media (max-width: 420px) { .board { grid-template-columns: 1fr; } }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }

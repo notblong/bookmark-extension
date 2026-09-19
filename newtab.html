@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Bookmark Board</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="wordmark" href="#" aria-label="Bookmark Board home">bookmark board</a>
+      <label class="search" for="search-input">
+        <span class="visually-hidden">Search bookmarks</span>
+        <input id="search-input" type="search" placeholder="Search bookmarks" autocomplete="off">
+        <kbd>⌘ K</kbd>
+      </label>
+      <div class="toolbar" aria-label="Board settings">
+        <label class="select-label" for="columns-select">Columns</label>
+        <select id="columns-select" aria-label="Columns per row">
+          <option value="4">4</option>
+          <option value="5">5</option>
+        </select>
+        <label class="select-label" for="theme-select">Theme</label>
+        <select id="theme-select" aria-label="Theme">
+          <option value="system">System</option>
+          <option value="light">Light</option>
+          <option value="dark">Dark</option>
+        </select>
+      </div>
+    </header>
+
+    <main>
+      <div id="status" class="status" role="status"></div>
+      <section id="board" class="board" aria-label="Bookmarks by folder"></section>
+    </main>
+
+    <template id="bookmark-template">
+      <a class="bookmark" target="_self">
+        <img class="favicon" width="16" height="16" alt="" aria-hidden="true">
+        <span class="bookmark-copy">
+          <span class="bookmark-title"></span>
+          <span class="bookmark-domain"></span>
+        </span>
+      </a>
+    </template>
+    <script src="newtab.js"></script>
+  </body>
+</html>
