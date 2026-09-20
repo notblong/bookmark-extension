@@ -35,13 +35,18 @@
     </main>
 
     <template id="bookmark-template">
-      <a class="bookmark" target="_self">
-        <img class="favicon" width="16" height="16" alt="" aria-hidden="true">
-        <span class="bookmark-copy">
-          <span class="bookmark-title"></span>
-          <span class="bookmark-domain"></span>
-        </span>
-      </a>
+      <div class="bookmark-row" draggable="true">
+        <a class="bookmark" target="_self">
+          <img class="favicon" width="16" height="16" alt="" aria-hidden="true">
+          <span class="bookmark-copy">
+            <span class="bookmark-title"></span>
+            <span class="bookmark-domain"></span>
+          </span>
+        </a>
+        <button class="remove-bookmark" type="button" aria-label="Remove bookmark" title="Remove bookmark">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>
+        </button>
+      </div>
     </template>
     <script src="newtab.js"></script>
   </body>

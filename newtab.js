@@ -9,6 +9,7 @@ let folders = [];
 let query = '';
 let folderOrder = [];
 let draggedFolderId = null;
+let draggedBookmark = null;
 const MAX_VISIBLE_BOOKMARKS = 10;
 
 function domainFor(url) {
@@ -19,6 +20,22 @@ function faviconFor(url) {
   // Chromium supplies cached site icons through this internal URL; a CSS fallback
   // makes a failed icon unobtrusive.
   return `chrome://favicon2/?size=32&scale_factor=1x&page_url=${encodeURIComponent(url)}`;
+}
+
+function createTrashButton(className, label) {
+  const button = document.createElement('button');
+  button.className = className;
+  button.type = 'button';
+  button.setAttribute('aria-label', label);
+  button.title = label;
+  const icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  icon.setAttribute('viewBox', '0 0 24 24');
+  icon.setAttribute('aria-hidden', 'true');
+  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  path.setAttribute('d', 'M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3');
+  icon.append(path);
+  button.append(icon);
+  return button;
 }
 
 function bookmarkMatches(bookmark) {
@@ -40,12 +57,85 @@ function matchingChildren(children) {
 function bookmarkElement(bookmark) {
   const item = bookmarkTemplate.content.firstElementChild.cloneNode(true);
   const icon = item.querySelector('.favicon');
-  item.href = bookmark.url;
-  item.querySelector('.bookmark-title').textContent = bookmark.title || domainFor(bookmark.url);
-  item.querySelector('.bookmark-domain').textContent = domainFor(bookmark.url);
+  const link = item.querySelector('.bookmark');
+  const title = item.querySelector('.bookmark-title');
+  const domain = item.querySelector('.bookmark-domain');
+  link.href = bookmark.url;
+  title.textContent = bookmark.title || domainFor(bookmark.url);
+  domain.textContent = domainFor(bookmark.url);
   icon.src = faviconFor(bookmark.url);
   icon.addEventListener('error', () => { icon.style.visibility = 'hidden'; }, { once: true });
+  item.querySelector('.remove-bookmark').addEventListener('click', () => removeBookmark(bookmark));
+  item.addEventListener('dragstart', event => {
+    draggedBookmark = { id: bookmark.id, parentId: bookmark.parentId };
+    event.dataTransfer.effectAllowed = 'move';
+    event.dataTransfer.setData('text/plain', bookmark.id);
+    item.classList.add('is-dragging');
+  });
+  item.addEventListener('dragend', () => {
+    draggedBookmark = null;
+    board.querySelectorAll('.bookmark-drop-target, .bookmark-row.is-dragging').forEach(element =>
+      element.classList.remove('bookmark-drop-target', 'is-dragging'));
+  });
+  item.addEventListener('mouseenter', () => requestAnimationFrame(() => updateBookmarkTooltip(item)));
+  item.addEventListener('focusin', () => requestAnimationFrame(() => updateBookmarkTooltip(item)));
   return item;
+}
+
+function updateBookmarkTooltip(row) {
+  for (const text of row.querySelectorAll('.bookmark-title, .bookmark-domain')) {
+    text.title = text.scrollWidth > text.clientWidth ? text.textContent : '';
+  }
+}
+
+function updateBookmarkTooltips() {
+  board.querySelectorAll('.bookmark-row').forEach(updateBookmarkTooltip);
+}
+
+async function removeBookmark(bookmark) {
+  try {
+    await chrome.bookmarks.remove(bookmark.id);
+  } catch (error) {
+    status.textContent = `Could not remove “${bookmark.title || 'bookmark'}”.`;
+    console.error(error);
+  }
+}
+
+async function removeFolder(folder) {
+  const message = `Remove the folder “${folder.title}” and all of its contents from Chrome? This cannot be undone.`;
+  if (!window.confirm(message)) return;
+  try {
+    await chrome.bookmarks.removeTree(folder.id);
+  } catch (error) {
+    status.textContent = `Could not remove “${folder.title}”.`;
+    console.error(error);
+  }
+}
+
+function makeFolderDropZone(element, folder) {
+  if (folder.isVirtual) return;
+  element.addEventListener('dragover', event => {
+    if (!draggedBookmark || draggedBookmark.parentId === folder.id) return;
+    event.preventDefault();
+    event.stopPropagation();
+    event.dataTransfer.dropEffect = 'move';
+    element.classList.add('bookmark-drop-target');
+  });
+  element.addEventListener('dragleave', event => {
+    if (!element.contains(event.relatedTarget)) element.classList.remove('bookmark-drop-target');
+  });
+  element.addEventListener('drop', async event => {
+    if (!draggedBookmark || draggedBookmark.parentId === folder.id) return;
+    event.preventDefault();
+    event.stopPropagation();
+    element.classList.remove('bookmark-drop-target');
+    try {
+      await chrome.bookmarks.move(draggedBookmark.id, { parentId: folder.id });
+    } catch (error) {
+      status.textContent = 'Could not move bookmark to that folder.';
+      console.error(error);
+    }
+  });
 }
 
 function appendItems(container, children) {
@@ -53,11 +143,21 @@ function appendItems(container, children) {
     if (item.url) {
       container.append(bookmarkElement(item));
     } else if (item.children?.length) {
-      const title = document.createElement('div');
-      title.className = 'section-title';
+      const section = document.createElement('section');
+      section.className = 'folder-section';
+      const heading = document.createElement('div');
+      heading.className = 'section-title';
+      const title = document.createElement('span');
       title.textContent = item.title || 'Untitled folder';
-      container.append(title);
-      appendItems(container, item.children);
+      const remove = createTrashButton('remove-folder', `Remove ${item.title || 'folder'}`);
+      remove.addEventListener('click', () => removeFolder(item));
+      heading.append(title, remove);
+      const content = document.createElement('div');
+      content.className = 'folder-section-content';
+      appendItems(content, item.children);
+      section.append(heading, content);
+      makeFolderDropZone(section, item);
+      container.append(section);
     }
   }
 }
@@ -88,9 +188,10 @@ function moveFolderTo(id, targetId, placeAfter) {
 
 function limitLongColumns() {
   for (const content of board.querySelectorAll('.column-content.is-scrollable')) {
-    const tenthBookmark = content.querySelectorAll('.bookmark')[MAX_VISIBLE_BOOKMARKS - 1];
-    if (tenthBookmark) content.style.maxHeight = `${tenthBookmark.offsetTop + tenthBookmark.offsetHeight + 5}px`;
+    const tenthRow = content.querySelectorAll('.bookmark-row')[MAX_VISIBLE_BOOKMARKS - 1];
+    if (tenthRow) content.style.maxHeight = `${tenthRow.offsetTop + tenthRow.offsetHeight + 5}px`;
   }
+  updateBookmarkTooltips();
 }
 
 function clearInsertionMarkers() {
@@ -133,11 +234,25 @@ function render() {
     const bookmarkCount = countBookmarks(folder.children);
     count.textContent = bookmarkCount;
     heading.append(title, count);
+    if (!folder.isVirtual) {
+      const actions = document.createElement('span');
+      actions.className = 'folder-actions';
+      const remove = createTrashButton('remove-folder', `Remove ${folder.title}`);
+      remove.addEventListener('mousedown', event => event.stopPropagation());
+      remove.addEventListener('dragstart', event => {
+        event.preventDefault();
+        event.stopPropagation();
+      });
+      remove.addEventListener('click', () => removeFolder(folder));
+      actions.append(remove);
+      heading.append(actions);
+    }
     const content = document.createElement('div');
     content.className = 'column-content';
     if (bookmarkCount > MAX_VISIBLE_BOOKMARKS) content.classList.add('is-scrollable');
     appendItems(content, folder.children);
     column.append(heading, content);
+    makeFolderDropZone(content, folder);
     heading.addEventListener('dragstart', event => {
       draggedFolderId = folder.id;
       event.dataTransfer.effectAllowed = 'move';
@@ -192,7 +307,7 @@ async function loadBookmarks() {
   // Loose bookmarks do not belong to a user-created folder, so group them in
   // one predictable board column rather than leaving them off the board.
   folders = looseBookmarks.length
-    ? [...groupedFolders, { id: '__bookmark_board_others__', title: 'Others', children: looseBookmarks }]
+    ? [...groupedFolders, { id: '__bookmark_board_others__', title: 'Others', children: looseBookmarks, isVirtual: true }]
     : groupedFolders;
   render();
 }
@@ -211,6 +326,7 @@ document.addEventListener('keydown', event => {
     event.preventDefault(); searchInput.focus();
   }
 });
+window.addEventListener('resize', () => requestAnimationFrame(updateBookmarkTooltips));
 columnsSelect.addEventListener('change', () => {
   const columns = columnsSelect.value;
   board.style.setProperty('--columns', columns);

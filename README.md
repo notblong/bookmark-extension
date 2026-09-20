@@ -9,4 +9,4 @@ A Manifest V3 Chromium extension that replaces the New Tab page with a simple bo
 3. Choose **Load unpacked** and select this folder.
 4. Open a new tab.
 
-The board reads from the browser's native bookmarks. Loose bookmarks appear in an **Others** column. Columns with more than ten bookmarks scroll. Drag a column header to save a board-only folder order with Chrome Sync; this does not change Chrome's native bookmark-folder order. Theme and column-width preferences are also saved with Chrome Sync.
+The board reads from the browser's native bookmarks. Loose bookmarks appear in an **Others** column. Columns with more than ten bookmarks scroll. Drag a column header to save a board-only folder order with Chrome Sync; this does not change Chrome's native bookmark-folder order. Drag a bookmark row onto a real folder column or nested-folder section to move it there. Removing a folder requires confirmation and removes it from Chrome with its contents. Theme and column-width preferences are also saved with Chrome Sync.

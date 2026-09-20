@@ -78,6 +78,7 @@ main { padding: 22px 20px 40px; }
 .column-heading:active { cursor: grabbing; }
 .folder-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 700; }
 .count { color: var(--muted); font-size: 12px; }
+.folder-actions { margin-left: auto; }
 .column.is-dragging { opacity: .4; }
 .column.is-insert-before::before, .column.is-insert-after::after {
   position: absolute;
@@ -94,14 +95,26 @@ main { padding: 22px 20px 40px; }
 .column.is-insert-after::after { right: -11px; }
 .column-content { position: relative; padding: 5px 0; }
 .column-content.is-scrollable { overflow-y: auto; scrollbar-color: var(--line) transparent; scrollbar-width: thin; }
-.section-title { margin: 9px 10px 3px; color: var(--muted); font-size: 10px; font-weight: 700; letter-spacing: .06em; }
-.bookmark { display: flex; gap: 8px; align-items: flex-start; padding: 7px 10px; color: var(--link); text-decoration: none; }
-.bookmark:hover { background: var(--empty); text-decoration: underline; }
+.section-title { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin: 9px 10px 3px; color: var(--muted); font-size: 10px; font-weight: 700; letter-spacing: .06em; }
+.bookmark-row { position: relative; display: flex; align-items: stretch; }
+.bookmark-row.is-dragging { opacity: .4; }
+.bookmark { display: flex; flex: 1; gap: 8px; align-items: flex-start; min-width: 0; padding: 7px 10px; color: var(--link); text-decoration: none; }
+.bookmark-row:hover { background: var(--empty); }
+.bookmark-row:hover .bookmark { padding-right: 35px; }
+.bookmark:hover { text-decoration: underline; }
 .favicon { flex: 0 0 16px; margin-top: 1px; object-fit: contain; }
 .bookmark-copy { min-width: 0; }
 .bookmark-title, .bookmark-domain { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .bookmark-title { color: var(--link); }
 .bookmark-domain { color: var(--muted); font-size: 12px; }
+.remove-bookmark, .remove-folder { display: inline-grid; width: 24px; height: 24px; place-items: center; padding: 3px; border: 1px solid transparent; border-radius: 2px; color: var(--muted); background: transparent; cursor: pointer; }
+.remove-bookmark { position: absolute; z-index: 1; top: 50%; right: 5px; opacity: 0; pointer-events: none; transform: translateY(-50%); }
+.bookmark-row:hover .remove-bookmark, .remove-bookmark:focus-visible { opacity: 1; pointer-events: auto; }
+.remove-folder { width: 22px; height: 22px; flex: 0 0 22px; }
+.remove-bookmark svg, .remove-folder svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.8; }
+.remove-bookmark:hover, .remove-folder:hover { color: #b42318; border-color: currentColor; }
+.remove-bookmark:focus-visible, .remove-folder:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+.column-content.bookmark-drop-target, .folder-section.bookmark-drop-target { background: var(--empty); outline: 2px dashed var(--focus); outline-offset: -2px; }
 .empty { padding: 10px; color: var(--muted); font-style: italic; }
 
 @media (max-width: 950px) { .board { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
