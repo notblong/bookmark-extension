@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Bookmark Board",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A simple, native bookmark board for Chromium new tabs.",
   "icons": {
     "16": "icons/bookmark-board-16.png",
